@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ReactQueryProvider } from "@/shared/lib/react-query";
 import "./globals.css";
-import React from "react";
+import { Sidebar } from "@/shared/ui/layout/Sidebar";
+import { Header } from "@/shared/ui/layout/Header";
+import { ThemeProvider } from "@/shared/ui/theme-provider";
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -15,22 +16,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Uniform Management",
-    description: "Sistema de gestão de uniformes corporativos",
+    title: "SisMônaco",
+    description: "Sistema de acompanhamento de veículos",
 };
 
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
-        <html lang="pt-BR">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Provedor global do React Query */}
-        <ReactQueryProvider>
-            {children}
-        </ReactQueryProvider>
+        <html lang="pt-BR" suppressHydrationWarning>
+        <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}
+        >
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            <Sidebar />
+            <main className="flex-1 flex flex-col bg-background text-foreground">
+                <Header />
+                <div className="p-6 flex-1 overflow-y-auto">{children}</div>
+            </main>
+        </ThemeProvider>
         </body>
         </html>
     );

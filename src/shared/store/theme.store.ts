@@ -1,9 +1,10 @@
+"use client";
+
 import { create } from "zustand";
 
 type Theme = "light" | "dark";
 
-interface ThemeState
-{
+interface ThemeState {
     theme: Theme;
     setTheme: (theme: Theme) => void;
     toggleTheme: () => void;
@@ -17,10 +18,9 @@ interface ThemeState
  * const { theme, toggleTheme } = useThemeStore();
  * ```
  */
-export const useThemeStore = create<ThemeState>(
-    (set) => ({
-        theme: "light",
-        setTheme: (theme) => set({ theme }),
-        toggleTheme: () =>
-            set((state) => ({ theme: state.theme === "light" ? "dark" : "light" })),
-    }));
+export const useThemeStore = create<ThemeState>((set) => ({
+    theme: "light",
+    setTheme: (theme) => set({ theme }),
+    toggleTheme: () =>
+        set((state) => ({ theme: state.theme === "light" ? "dark" : "light" })),
+}));
