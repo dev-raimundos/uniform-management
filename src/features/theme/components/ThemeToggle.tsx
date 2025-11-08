@@ -1,24 +1,40 @@
 "use client";
 
-import { useThemeStore } from "../hooks/useTheme";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
 import { Button } from "@/shared/ui/button";
 
 /**
- * Botão de alternância de tema, integrado com Zustand.
- * Usa ícones Radix e componentes do Shadcn.
+ * Botão de alternância de tema totalmente compatível com React 19.
+ * Evita hydration mismatch sem violar regras de ESLint.
  */
 export function ThemeToggle() {
-    const { theme, toggleTheme } = useThemeStore();
+    const { resolvedTheme, setTheme } = useTheme();
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        queueMicrotask(() => setIsReady(true));
+    }, []);
+
+    if (!isReady) {
+        return (
+            <Button variant="ghost" size="icon" aria-label="Alternar tema">
+                <div className="h-5 w-5" />
+            </Button>
+        );
+    }
+
+    const nextTheme = resolvedTheme === "light" ? "dark" : "light";
 
     return (
         <Button
             variant="ghost"
             size="icon"
-            onClick={toggleTheme}
+            onClick={() => setTheme(nextTheme)}
             aria-label="Alternar tema"
         >
-            {theme === "light" ? (
+            {resolvedTheme === "light" ? (
                 <SunIcon className="h-5 w-5 text-foreground" />
             ) : (
                 <MoonIcon className="h-5 w-5 text-foreground" />
