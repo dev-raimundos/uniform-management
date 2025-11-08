@@ -14,13 +14,19 @@ import { useUserStore } from "@/shared/store/user.store";
  * ```
  */
 export function useCurrentUser() {
-    const user = useUserStore((state) => state.user);
+    const user = useUserStore(
+        (state) => state.user)
+    ;
+
+    console.log('Renderizou com user:', user);
 
     useEffect(() => {
         if (!user) {
+            console.log('Buscando usuário no backend...');
             void getCurrentUser();
         }
-    }, [user]);
+        }, [ user ]
+    );
 
     return { user };
 }

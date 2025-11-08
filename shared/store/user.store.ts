@@ -32,7 +32,8 @@ interface UserState {
  * const setUser = useUserStore((state) => state.setUser);
  * ```
  */
-export const useUserStore = create<UserState>((set) => ({
+export const useUserStore = create<UserState>(
+    (set) => ({
     user: null,
     setUser: (user) => set({ user }),
     clearUser: () => set({ user: null }),
