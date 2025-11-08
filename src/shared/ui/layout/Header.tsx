@@ -1,6 +1,6 @@
 "use client";
 
-import { ThemeToggle } from "@/features/theme/components/ThemeToggle";
+import { ThemeToggle } from "@/modules/theme/components/ThemeToggle";
 
 /**
  * Cabeçalho fixo padrão, exibindo informações do usuário e ações globais.

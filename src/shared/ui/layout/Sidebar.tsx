@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { cn } from "@/shared/lib/utils";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/features/theme/components/ThemeToggle";
+import { ThemeToggle } from "@/modules/theme/components/ThemeToggle";
 
 const menu = [
     { name: "Dashboard", href: "/dashboard" },
