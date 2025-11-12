@@ -1,5 +1,5 @@
+import { useUserStore, type User } from "@/modules/auth";
 import { api } from "@/shared/lib/api";
-import { useUserStore, type User } from "@/shared/store/user.store";
 
 /**
  * Busca o usuário autenticado na API `/me` e popula a store global.

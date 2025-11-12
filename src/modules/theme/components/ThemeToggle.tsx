@@ -1,9 +1,9 @@
 "use client";
 
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
 import { Button } from "@/shared/ui/button";
+import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
 
 /**
  * Botão de alternância de tema totalmente compatível com React 19.

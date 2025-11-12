@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQuery, type QueryObserverResult } from "@tanstack/react-query";
+import { useUserStore, type User } from "@/modules/auth";
 import { api } from "@/shared/lib/api";
-import { useUserStore, type User } from "@/shared/store/user.store";
+import { useEffect } from "react";
 
+/**
+ * Busca o usuário autenticado via API `/me`.
+ *
+ * @returns Um objeto com a chave `results` contendo os dados do usuário.
+ */
 async function fetchCurrentUser(): Promise<User> {
     const response = await api<{ results: User }>("/me");
     return response.results;
@@ -13,14 +18,29 @@ async function fetchCurrentUser(): Promise<User> {
 /**
  * Hook responsável por buscar e manter o estado do usuário autenticado.
  *
- * Utiliza TanStack React Query para requisição e cache, e Zustand para persistência
- * global do usuário. Faz a chamada ao endpoint `/me`, armazena o resultado na store
- * e fornece o estado da query para uso nos componentes.
+ * Utiliza:
+ * - **TanStack React Query** para requisição e cache;
+ * - **Zustand** (`useUserStore`) para persistência global do usuário.
  *
- * @returns Um objeto com:
- * - `user`: Usuário autenticado atual.
+ * Faz automaticamente:
+ *  - Chamada à API `/me`;
+ *  - Armazenamento do resultado na store global;
+ *  - Limpeza do estado em caso de erro (ex: token inválido).
+ *
+ * @example
+ * ```tsx
+ * const { user, loading, error, refetch } = useCurrentUser();
+ *
+ * if (loading) return <p>Carregando...</p>;
+ * if (error) return <p>Erro: {(error as Error).message}</p>;
+ *
+ * return <h1>Bem-vindo, {user?.nome}</h1>;
+ * ```
+ *
+ * @returns Um objeto contendo:
+ * - `user`: Usuário autenticado atual ou `null` se não logado.
  * - `loading`: Indica se a requisição está em andamento.
- * - `error`: Erro retornado pela query, se houver.
+ * - `error`: Erro retornado pela query (caso ocorra).
  * - `refetch`: Função para refazer manualmente a requisição.
  */
 export function useCurrentUser(): {
@@ -34,7 +54,7 @@ export function useCurrentUser(): {
     const query = useQuery<User, Error>({
         queryKey: ["currentUser"],
         queryFn: fetchCurrentUser,
-        staleTime: 1000 * 60 * 5,
+        staleTime: 1000 * 60 * 5, // 5 minutos de cache
         refetchOnWindowFocus: false,
         retry: 1,
     });
