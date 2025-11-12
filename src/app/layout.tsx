@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/shared/ui/theme-provider";
+import { ReactQueryProvider } from "@/shared/lib/react-query";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/shared/ui/layout/Sidebar";
 import { Header } from "@/shared/ui/layout/Header";
@@ -31,13 +32,21 @@ export default function RootLayout({
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}
         >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <Sidebar />
-            <main className="flex-1 flex flex-col bg-background text-foreground">
-                <Header />
-                <div className="p-6 flex-1 overflow-y-auto">{children}</div>
-            </main>
-        </ThemeProvider>
+        <ReactQueryProvider>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+            >
+                <Sidebar />
+                <main className="flex-1 flex flex-col bg-background text-foreground">
+                    <Header />
+                    <div className="p-6 flex-1 overflow-y-auto">
+                        {children}
+                    </div>
+                </main>
+            </ThemeProvider>
+        </ReactQueryProvider>
         </body>
         </html>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery, type QueryObserverResult } from "@tanstack/react-query";
 import { api } from "@/shared/lib/api";
 import { useUserStore, type User } from "@/shared/store/user.store";
@@ -28,7 +29,7 @@ export function useCurrentUser(): {
     error: unknown;
     refetch: () => Promise<QueryObserverResult<User, Error>>;
 } {
-    const { setUser } = useUserStore();
+    const { setUser, clearUser, user } = useUserStore();
 
     const query = useQuery<User, Error>({
         queryKey: ["currentUser"],
@@ -38,15 +39,16 @@ export function useCurrentUser(): {
         retry: 1,
     });
 
-    // Sincroniza o estado global conforme os resultados da query
-    if (query.data) {
-        setUser(query.data);
-    } else if (query.error) {
-        useUserStore.getState().clearUser();
-    }
+    useEffect(() => {
+        if (query.data) {
+            setUser(query.data);
+        } else if (query.error) {
+            clearUser();
+        }
+    }, [query.data, query.error, setUser, clearUser]);
 
     return {
-        user: query.data ?? useUserStore.getState().user,
+        user: query.data ?? user,
         loading: query.isLoading,
         error: query.error,
         refetch: query.refetch,

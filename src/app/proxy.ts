@@ -5,59 +5,66 @@ import { env } from "@/shared/config/env";
 /**
  * Proxy responsável por interceptar requisições e gerenciar autenticação via cookie ou token.
  *
- * - Em desenvolvimento, insere um token de teste definido em `.env.local` caso o cookie não exista.
- * - Caso a URL contenha `?token=`, grava o cookie e redireciona o usuário para a mesma rota sem o parâmetro.
- * - Caso não exista token válido, redireciona o usuário para a página de login.
+ * Em produção:
+ *   - Captura o token via URL (?token=xxx) e grava no cookie `access_token`.
  *
- * Essa configuração substitui o antigo `middleware.ts` nas versões recentes do Next.js (15+).
+ * Em desenvolvimento:
+ *   - Captura o token via URL (se existir);
+ *   - Caso contrário, usa o token de teste (`NEXT_PUBLIC_TEST_TOKEN`) do .env.local
+ *     para evitar redirecionamentos e permitir login automático local.
+ *
+ * Caso não haja nenhum token disponível, redireciona para a tela de login.
  */
 export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     const tokenFromUrl = url.searchParams.get("token");
     const tokenFromCookie = request.cookies.get("access_token")?.value;
+    const isProd = process.env.NODE_ENV === "production";
+    const isDev = process.env.NODE_ENV === "development";
 
-    // Ambiente local: aplica token de teste caso não exista cookie
-    if (process.env.NODE_ENV === "development" && !tokenFromCookie) {
+    if (tokenFromUrl) {
+        const redirectUrl = new URL(url.pathname, env.NEXT_PUBLIC_APP_URL);
+        const res = NextResponse.redirect(redirectUrl);
+
+        res.cookies.set("access_token", tokenFromUrl, {
+            httpOnly: false,
+            secure: isProd,
+            sameSite: isProd ? "lax" : "none",
+            maxAge: 60 * 60 * 2,
+            path: "/",
+        });
+
+        console.log("[Proxy] Token capturado da URL e salvo como cookie.");
+        return res;
+    }
+
+    if (isDev && !tokenFromCookie) {
         const testToken = env.NEXT_PUBLIC_TEST_TOKEN;
         if (testToken) {
-            console.log("Proxy: usando token de teste do .env.local");
+            console.log("[Proxy] Dev mode: usando token de teste do .env.local");
             const res = NextResponse.next();
             res.cookies.set("access_token", testToken, {
-                httpOnly: true,
+                httpOnly: false,
                 secure: false,
-                sameSite: "lax",
-                maxAge: 60 * 60 * 2, // 2h
+                sameSite: "none",
+                maxAge: 60 * 60 * 2,
                 path: "/",
             });
             return res;
         }
     }
 
-    // Token presente na URL — grava cookie e redireciona para limpar a query string
-    if (tokenFromUrl) {
-        const res = NextResponse.redirect(new URL(url.pathname, env.NEXT_PUBLIC_APP_URL));
-        res.cookies.set("access_token", tokenFromUrl, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 60 * 60 * 2, // 2h
-            path: "/",
-        });
-        return res;
-    }
-
-    // Sem cookie de autenticação — redireciona para a tela de login
-    if (!tokenFromCookie) {
+    const token = tokenFromCookie ?? null;
+    if (!token) {
+        console.warn("[Proxy] Nenhum token encontrado — redirecionando para login.");
         return NextResponse.redirect(env.NEXT_PUBLIC_LOGIN_URL);
     }
 
-    // Requisição autenticada — segue normalmente
     return NextResponse.next();
 }
 
 /**
- * Define quais rotas devem passar pelo proxy.
- * O padrão abaixo intercepta todas as rotas, exceto as internas do Next.js e API routes.
+ * Define quais rotas passam pelo proxy.
  */
 export const config = {
     matcher: ["/((?!_next|api|favicon.ico).*)"],

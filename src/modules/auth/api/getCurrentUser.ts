@@ -4,7 +4,8 @@ import { useUserStore, type User } from "@/shared/store/user.store";
 /**
  * Busca o usuário autenticado na API `/me` e popula a store global.
  */
-export async function getCurrentUser(): Promise<void> {
+export async function getCurrentUser(): Promise<void>
+{
     try {
         const response = await api<{
             error: boolean;

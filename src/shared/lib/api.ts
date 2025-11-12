@@ -1,3 +1,4 @@
+import Cookies from "js-cookie";
 import { env } from "@/shared/config/env";
 
 /**
@@ -5,71 +6,34 @@ import { env } from "@/shared/config/env";
  */
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
-/**
- * Parâmetros aceitos pela função `api`.
- * Baseado em `RequestInit`, com suporte a corpo genérico.
- */
 export interface ApiOptions extends Omit<RequestInit, "body"> {
     method?: HttpMethod;
     body?: unknown;
 }
 
 /**
- * Função universal para realizar requisições HTTP padronizadas.
+ * Função universal para requisições HTTP padronizadas.
  *
- * Centraliza a comunicação entre o front-end e a API da aplicação,
- * aplicando automaticamente:
- *  - Base URL do backend (`env.NEXT_PUBLIC_API_URL`);
- *  - Cabeçalhos padrão (`Content-Type: application/json`);
- *  - Envio automático de cookies (`credentials: "include"`);
- *  - Conversão automática do corpo para JSON;
- *  - Tratamento unificado de erros.
- *
- * ---
- *
- * ### Uso básico
- * ```ts
- * // Exemplo 1: Buscar usuários
- * const users = await api<User[]>("/users");
- *
- * // Exemplo 2: Criar um novo usuário
- * const newUser = await api<User>("/users", {
- *   method: "POST",
- *   body: { name: "Lucas", email: "lucas@empresa.com" }
- * });
- * ```
- *
- * ### Tratamento de erro
- * ```ts
- * try {
- *   const users = await api<User[]>("/users");
- * } catch (error) {
- *   console.error("Falha ao buscar usuários:", error);
- * }
- * ```
- *
- * @template T Tipo esperado na resposta JSON.
- * @param {string} path Caminho do endpoint (ex: "/users")
- * @param {ApiOptions} [options] Configurações opcionais (method, corpo, headers, etc.)
- * @returns {Promise<T>} Retorna o corpo da resposta convertido em JSON tipado.
- * @throws {Error} Se a resposta não for bem-sucedida (posição HTTP fora da faixa 200–299)
+ *   Em dev → usa token do .env.local ou localStorage
+ *   Em produção → usa token do cookie `access_token`
+ *   Sempre envia o header Authorization (nunca cookies)
  */
-export async function api<T>(
-    path: string,
-    options: ApiOptions = {}
-): Promise<T> {
+export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
     const baseUrl = env.NEXT_PUBLIC_API_URL;
     const url = `${baseUrl}${path}`;
 
+    const token = resolveAccessToken();
+
     const headers: HeadersInit = {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
     };
 
     const response = await fetch(url, {
         ...options,
         headers,
-        credentials: "include",
+        credentials: "omit",
         body: formatBody(options.body),
         cache: "no-store",
     });
@@ -83,7 +47,37 @@ export async function api<T>(
 }
 
 /**
- * Converte o corpo da requisição em formato adequado para o `fetch`.
+ * Resolve o token de autenticação:
+ *    Produção → lê do cookie `access_token`
+ *    Dev → lê do localStorage ou do .env.local
+ */
+function resolveAccessToken(): string | null {
+    if (typeof window === "undefined") return null;
+
+    const isProd = process.env.NODE_ENV === "production";
+
+    // Produção: token vem do cookie
+    if (isProd) {
+        const token = Cookies.get("access_token");
+        if (token) return token;
+    }
+
+    // Desenvolvimento: tenta localStorage → .env.local
+    const localToken = localStorage.getItem("access_token");
+    if (localToken) return localToken;
+
+    const testToken = env.NEXT_PUBLIC_TEST_TOKEN;
+    if (testToken) {
+        console.log("[api] Usando token de teste do .env.local");
+        return testToken;
+    }
+
+    console.warn("[api] Nenhum token encontrado.");
+    return null;
+}
+
+/**
+ * Converte o corpo da requisição.
  */
 function formatBody(body: unknown): BodyInit | undefined {
     if (body === undefined || body === null) return undefined;
