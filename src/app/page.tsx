@@ -1,5 +1,4 @@
 "use client";
-"use client";
 
 import { useCurrentUser } from "@/modules/auth/hooks/useCurrentUser";
 
