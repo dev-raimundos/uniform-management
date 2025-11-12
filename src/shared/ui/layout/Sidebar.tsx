@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { cn } from "@/shared/lib/utils/utils";
+import { cn } from "@/shared/lib/utils";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/modules/theme/components/ThemeToggle";
 

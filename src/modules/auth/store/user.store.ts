@@ -6,7 +6,8 @@ import { create } from "zustand";
  *
  * Permite acessar e modificar o usuário em qualquer componente da aplicação.
  */
-interface UserState {
+interface UserState
+{
     /** Usuário autenticado atual (ou null se não logado). */
     user: User | null;
 
@@ -26,8 +27,12 @@ interface UserState {
  * const setUser = useUserStore((state) => state.setUser);
  * ```
  */
-export const useUserStore = create<UserState>((set) => ({
-    user: null,
-    setUser: (user) => set({ user }),
-    clearUser: () => set({ user: null }),
-}));
+export const useUserStore = create<UserState>(
+    (set) => (
+        {
+            user: null,
+            setUser: (user) => set({ user }),
+            clearUser: () => set({ user: null }),
+        }
+    )
+);
