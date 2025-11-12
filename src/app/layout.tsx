@@ -3,21 +3,16 @@ import { ReactQueryProvider } from "@/shared/lib/react-query";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/shared/ui/layout/Sidebar";
 import { Header } from "@/shared/ui/layout/Header";
-import type { Metadata } from "next";
+import { UserInitializer } from "@/modules/auth";
 import React from "react";
 import "./globals.css";
-import { useCurrentUser } from "@/modules/auth";
 
 /**
  * Hook executor: garante que o /me seja chamado na inicialização da aplicação.
  * Esse componente é separado porque hooks não podem ser usados diretamente
  * dentro de arquivos de layout (Next.js exige componente client).
+ * @constructor
  */
-function UserInitializer()
-{
-    useCurrentUser();
-    return null;
-}
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -29,32 +24,31 @@ const geistMono = Geist_Mono({
     subsets: [ "latin" ],
 });
 
-export const metadata: Metadata = {
-    title: "SisMônaco",
-    description: "Sistema de acompanhamento de veículos",
-};
-
 export default function RootLayout({ children, }: { children: React.ReactNode; })
 {
     return (
         <html lang="pt-BR" suppressHydrationWarning>
         <body
-            className={ `${ geistSans.variable } ${ geistMono.variable } antialiased flex` }
+            className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}
         >
         <ReactQueryProvider>
 
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 
-                <UserInitializer/>
+                <UserInitializer />
 
-                <Sidebar/>
+                <Sidebar />
 
                 <main className="flex-1 flex flex-col bg-background text-foreground">
-                    <Header/>
+
+                    <Header />
+
                     <div className="p-6 flex-1 overflow-y-auto">
-                        { children }
+                        {children}
                     </div>
+
                 </main>
+
             </ThemeProvider>
 
         </ReactQueryProvider>
