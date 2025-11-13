@@ -39,19 +39,19 @@ export async function proxy(request: NextRequest)
             maxAge: 60 * 60 * 2,
         });
 
-        console.log(`[Middleware] Token capturado e salvo (${ isProd ? "PROD" : "DEV" }):`, tokenFromUrl);
+        console.log(`[Proxy] Token capturado e salvo (${ isProd ? "PROD" : "DEV" }):`, tokenFromUrl);
         return response;
     }
 
     if (!tokenFromCookie) {
-        console.warn("[Middleware] Nenhum token encontrado — usuário não autenticado.");
+        console.warn("[Proxy] Nenhum token encontrado — usuário não autenticado.");
     }
 
     return NextResponse.next();
 }
 
 /**
- * Aplica o middleware a todas as rotas,
+ * Aplica o proxy a todas as rotas,
  * exceto as internas do Next (_next, api, favicon).
  */
 export const config = {
