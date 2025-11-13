@@ -9,7 +9,6 @@ const envSchema = z.object({
     NEXT_PUBLIC_API_URL: z.string().url("NEXT_PUBLIC_API_URL deve ser uma URL válida"),
     NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL deve ser uma URL válida"),
     NEXT_PUBLIC_LOGIN_URL: z.string().url("NEXT_PUBLIC_LOGIN_URL deve ser uma URL válida"),
-    NEXT_PUBLIC_TEST_TOKEN: z.string().optional(),
 });
 
 /**
@@ -21,5 +20,4 @@ export const env = envSchema.parse({
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_LOGIN_URL: process.env.NEXT_PUBLIC_LOGIN_URL,
-    NEXT_PUBLIC_TEST_TOKEN: process.env.NEXT_PUBLIC_TEST_TOKEN,
 });

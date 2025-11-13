@@ -168,11 +168,6 @@ function resolveAccessToken(): string | null {
     const localToken = localStorage.getItem("access_token");
     if (localToken) return localToken;
 
-    const testToken = env.NEXT_PUBLIC_TEST_TOKEN;
-    if (testToken) {
-        console.log("[api] Usando token de teste do .env.local");
-        return testToken;
-    }
 
     console.warn("[api] Nenhum token encontrado.");
     return null;

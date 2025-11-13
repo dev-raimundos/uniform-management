@@ -4,15 +4,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/shared/ui/layout/Sidebar";
 import { Header } from "@/shared/ui/layout/Header";
 import { UserInitializer } from "@/modules/auth";
+import { TokenHandler } from "@/modules/token";
 import React from "react";
 import "./globals.css";
-
-/**
- * Hook executor: garante que o /me seja chamado na inicialização da aplicação.
- * Esse componente é separado porque hooks não podem ser usados diretamente
- * dentro de arquivos de layout (Next.js exige componente client).
- * @constructor
- */
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -31,6 +25,9 @@ export default function RootLayout({ children, }: { children: React.ReactNode; }
         <body
             className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}
         >
+
+        <TokenHandler />
+
         <ReactQueryProvider>
 
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
