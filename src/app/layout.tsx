@@ -23,25 +23,25 @@ export default function RootLayout({ children, }: { children: React.ReactNode; }
     return (
         <html lang="pt-BR" suppressHydrationWarning>
         <body
-            className={`${geistSans.variable} ${geistMono.variable} antialiased flex`}
+            className={ `${ geistSans.variable } ${ geistMono.variable } antialiased flex` }
         >
 
-        <TokenHandler />
+        <TokenHandler/>
 
         <ReactQueryProvider>
 
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 
-                <UserInitializer />
+                <UserInitializer/>
 
-                <Sidebar />
+                <Sidebar/>
 
                 <main className="flex-1 flex flex-col bg-background text-foreground">
 
-                    <Header />
+                    <Header/>
 
                     <div className="p-6 flex-1 overflow-y-auto">
-                        {children}
+                        { children }
                     </div>
 
                 </main>

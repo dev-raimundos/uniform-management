@@ -11,7 +11,8 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
  *
  * Baseado em `RequestInit`, com suporte adicional para `method` e `body`.
  */
-export interface ApiOptions extends Omit<RequestInit, "body"> {
+export interface ApiOptions extends Omit<RequestInit, "body">
+{
     /** Method HTTP (GET, POST, PUT, DELETE, PATCH). */
     method?: HttpMethod;
     /** Corpo da requisição — convertido automaticamente em JSON, exceto se for `FormData` ou `string`. */
@@ -120,24 +121,30 @@ export interface ApiOptions extends Omit<RequestInit, "body"> {
  * }
  * ```
  */
-export async function api<T>(path: string, options: ApiOptions = {}): Promise<T> {
+export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
+{
     const baseUrl = env.NEXT_PUBLIC_API_URL;
-    const url = `${baseUrl}${path}`;
+    const url = `${ baseUrl }${ path }`;
     const token = resolveAccessToken();
 
     const headers: HeadersInit = {
         "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(token ? { Authorization: `Bearer ${ token }` } : {}),
         ...(options.headers ?? {}),
     };
 
-    const response = await fetch(url, {
-        ...options,
-        headers,
-        credentials: "omit",
-        body: formatBody(options.body),
-        cache: "no-store",
-    });
+    const response = await fetch(
+        url,
+        {
+            ...options,
+            headers,
+            credentials: "omit",
+            body: formatBody(
+                options.body
+            ),
+            cache: "no-store",
+        }
+    );
 
     if (!response.ok) {
         const message = await extractErrorMessage(response);
@@ -155,7 +162,8 @@ export async function api<T>(path: string, options: ApiOptions = {}): Promise<T>
  *
  * @returns O token JWT atual ou `null` se não existir.
  */
-function resolveAccessToken(): string | null {
+function resolveAccessToken(): string | null
+{
     if (typeof window === "undefined") return null;
 
     const isProd = process.env.NODE_ENV === "production";
@@ -183,7 +191,8 @@ function resolveAccessToken(): string | null {
  * @param body Corpo da requisição.
  * @returns Corpo formatado para envio via `fetch`.
  */
-function formatBody(body: unknown): BodyInit | undefined {
+function formatBody(body: unknown): BodyInit | undefined
+{
     if (body === undefined || body === null) return undefined;
     if (typeof body === "string" || body instanceof FormData) return body;
     return JSON.stringify(body);
@@ -203,7 +212,8 @@ function formatBody(body: unknown): BodyInit | undefined {
  * @param res Resposta HTTP.
  * @returns Mensagem de erro extraída.
  */
-async function extractErrorMessage(res: Response): Promise<string> {
+async function extractErrorMessage(res: Response): Promise<string>
+{
     try {
         const data = (await res.json()) as Record<string, unknown>;
         return String(data.message ?? data.error ?? res.statusText);
