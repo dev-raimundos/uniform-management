@@ -1,36 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Middleware responsável por capturar o token da URL (?token=xxx),
- * armazená-lo em um cookie e permitir que o front consuma normalmente.
+ * Proxy universal para autenticação.
  *
- * ---
- *
- * Em desenvolvimento:
- *   - Usa `httpOnly: false` e `secure: false`
- *   - Permite leitura via `js-cookie`
- *
- * Em produção:
- *   - Usa `httpOnly: true` e `secure: true`
- *   - Protege o cookie contra acesso via JavaScript
- *
- * ---
- *
- * O cookie tem duração de 2h e é propagado em todas as rotas.
+ * Faz automaticamente:
+ *  - Captura o token da URL (?token=xxx) e salva no cookie.
+ *  - Injeta o header `Authorization: Bearer <token>` em todas as requisições.
+ *  - Funciona tanto em localhost (JS pode ler) quanto em produção (HttpOnly seguro).
  */
-export async function proxy(request: NextRequest)
-{
+export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     const tokenFromUrl = url.searchParams.get("token");
     const tokenFromCookie = request.cookies.get("token")?.value;
-
     const isProd = process.env.NODE_ENV === "production";
 
     if (tokenFromUrl) {
-
         url.searchParams.delete("token");
-        const response = NextResponse.redirect(url);
 
+        const response = NextResponse.redirect(url);
         response.cookies.set("token", tokenFromUrl, {
             httpOnly: isProd,
             secure: isProd,
@@ -39,21 +26,27 @@ export async function proxy(request: NextRequest)
             maxAge: 60 * 60 * 2,
         });
 
-        console.log(`[Proxy] Token capturado e salvo (${ isProd ? "PROD" : "DEV" }):`, tokenFromUrl);
+        console.log(`[Proxy] Token capturado e salvo (${isProd ? "PROD" : "DEV"})`);
         return response;
     }
 
-    if (!tokenFromCookie) {
-        console.warn("[Proxy] Nenhum token encontrado — usuário não autenticado.");
+    const token = tokenFromCookie;
+    if (token) {
+        const requestHeaders = new Headers(request.headers);
+
+        if (!requestHeaders.has("Authorization")) {
+            requestHeaders.set("Authorization", `Bearer ${token}`);
+        }
+
+        return NextResponse.next({
+            request: { headers: requestHeaders },
+        });
     }
 
+    console.warn("[Proxy] Nenhum token encontrado — requisição sem autenticação.");
     return NextResponse.next();
 }
 
-/**
- * Aplica o proxy a todas as rotas,
- * exceto as internas do Next (_next, api, favicon).
- */
 export const config = {
-    matcher: [ "/((?!_next|api|favicon.ico).*)" ],
+    matcher: ["/((?!_next|api|favicon.ico).*)"],
 };
