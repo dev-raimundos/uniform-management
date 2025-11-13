@@ -18,7 +18,7 @@ import { NextRequest, NextResponse } from "next/server";
  *
  * O cookie tem duração de 2h e é propagado em todas as rotas.
  */
-export async function middleware(request: NextRequest)
+export async function proxy(request: NextRequest)
 {
     const url = request.nextUrl.clone();
     const tokenFromUrl = url.searchParams.get("token");
