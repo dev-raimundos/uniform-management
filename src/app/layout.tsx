@@ -23,10 +23,8 @@ export default function RootLayout({ children }: React.PropsWithChildren)
         <html lang="pt-BR" suppressHydrationWarning>
         <body className={ `${ geistSans.variable } ${ geistMono.variable } antialiased flex` }>
 
-        {/* React Query global */ }
         <ReactQueryProvider>
 
-            {/* Tema global */ }
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
 
                 <UserInitializer/>

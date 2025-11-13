@@ -8,7 +8,7 @@ export function useCurrentUserQuery(enabled = true) {
         queryKey: ["currentUser"],
         queryFn: fetchCurrentUser,
         enabled,
-        staleTime: 1000 * 60 * 5, // 5 minutos
+        staleTime: 1000 * 60 * 5,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
         retry: 1,
