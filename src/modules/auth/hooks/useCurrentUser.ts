@@ -10,7 +10,8 @@ import { useEffect } from "react";
  *
  * @returns Um objeto com a chave `results` contendo os dados do usuário.
  */
-async function fetchCurrentUser(): Promise<User> {
+async function fetchCurrentUser(): Promise<User>
+{
     const response = await apiExternal<{ results: User }>("/me");
     return response.results;
 }
@@ -43,29 +44,41 @@ async function fetchCurrentUser(): Promise<User> {
  * - `error`: Erro retornado pela query (caso ocorra).
  * - `refetch`: Função para refazer manualmente a requisição.
  */
-export function useCurrentUser(): {
+export function useCurrentUser(enabled = true): {
     user: User | null;
     loading: boolean;
     error: unknown;
     refetch: () => Promise<QueryObserverResult<User, Error>>;
-} {
+}
+{
     const { setUser, clearUser, user } = useUserStore();
 
-    const query = useQuery<User, Error>({
-        queryKey: ["currentUser"],
-        queryFn: fetchCurrentUser,
-        staleTime: 1000 * 60 * 5, // 5 minutos de cache
-        refetchOnWindowFocus: false,
-        retry: 1,
-    });
-
-    useEffect(() => {
-        if (query.data) {
-            setUser(query.data);
-        } else if (query.error) {
-            clearUser();
+    const query = useQuery<User, Error>(
+        {
+            queryKey: [ "currentUser" ],
+            queryFn: fetchCurrentUser,
+            enabled,
+            staleTime: 1000 * 60 * 5,
+            refetchOnWindowFocus: false,
+            retry: 1,
         }
-    }, [query.data, query.error, setUser, clearUser]);
+    );
+
+    useEffect(() =>
+        {
+            if (query.data) {
+                setUser(query.data);
+            } else if (query.error) {
+                clearUser();
+            }
+        },
+        [
+            query.data,
+            query.error,
+            setUser,
+            clearUser
+        ]
+    );
 
     return {
         user: query.data ?? user,

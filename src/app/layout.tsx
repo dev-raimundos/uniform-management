@@ -4,7 +4,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Sidebar } from "@/shared/ui/layout/Sidebar";
 import { Header } from "@/shared/ui/layout/Header";
 import { UserInitializer } from "@/modules/auth";
-import { TokenHandler } from "@/modules/token";
 import React from "react";
 import "./globals.css";
 
@@ -25,8 +24,6 @@ export default function RootLayout({ children, }: { children: React.ReactNode; }
         <body
             className={ `${ geistSans.variable } ${ geistMono.variable } antialiased flex` }
         >
-
-        <TokenHandler/>
 
         <ReactQueryProvider>
 

@@ -30,7 +30,7 @@ export interface ApiOptions extends Omit<RequestInit, "body">
  *
  * ---
  *
- * ###  Comportamento
+ * ### Comportamento
  *
  * - Injeta automaticamente o token JWT salvo no cookie `access_token`
  *   via header `Authorization: Bearer <token>`.
@@ -93,7 +93,7 @@ export interface ApiOptions extends Omit<RequestInit, "body">
  * ---
  *
  * @template T Tipo esperado na resposta JSON.
- * @param path Caminho relativo do endpoint (ex: `"/users"`, `"/auth/login"`).
+ * @param path Caminho relativo do endpoint (ex: `"/users"`).
  * @param options Opções adicionais (method, corpo, headers, etc.).
  * @returns Promise com o corpo da resposta convertido em JSON.
  * @throws `Error` se a requisição retornar status diferente de 2xx.
@@ -105,7 +105,8 @@ export async function apiExternal<T>(
 {
     const baseUrl = env.NEXT_PUBLIC_API_URL;
     const url = `${ baseUrl }${ path }`;
-    const token = resolveAccessToken();
+
+    const token = Cookies.get("token");
 
     const headers: HeadersInit = {
         "Content-Type": "application/json",
@@ -130,42 +131,7 @@ export async function apiExternal<T>(
 }
 
 /**
- * Resolve o token de autenticação atual a partir do cookie `access_token`.
- *
- * ---
- *
- * - Usa a biblioteca `js-cookie` para ler o cookie em ambiente cliente.
- * - Não utiliza `localStorage` nem variáveis `.env` como fallback.
- * - Caso o cookie não exista, retorna `null` e exibe um aviso no console.
- *
- * ---
- *
- * @returns O token JWT atual ou `null` se não existir.
- */
-function resolveAccessToken(): string | null
-{
-    if (typeof window === "undefined") return null;
-
-    const token = Cookies.get("access_token");
-    if (token) return token;
-
-    console.warn("[apiExternal] Nenhum token encontrado no cookie.");
-    return null;
-}
-
-/**
  * Converte o corpo da requisição (`body`) para o formato apropriado.
- *
- * ---
- *
- * - Strings e `FormData` são mantidos como estão.
- * - Objetos são serializados em JSON.
- * - `undefined` e `null` são ignorados.
- *
- * ---
- *
- * @param body Corpo da requisição.
- * @returns Corpo formatado para envio via `fetch`.
  */
 function formatBody(body: unknown): BodyInit | undefined
 {
@@ -176,16 +142,6 @@ function formatBody(body: unknown): BodyInit | undefined
 
 /**
  * Extrai e padroniza uma mensagem de erro a partir da resposta HTTP.
- *
- * ---
- *
- * - Se o corpo contiver um JSON com `message` ou `error`, usa esse valor.
- * - Caso contrário, retorna o `statusText` da resposta.
- *
- * ---
- *
- * @param res Resposta HTTP (`Response`).
- * @returns Mensagem de erro extraída.
  */
 async function extractErrorMessage(res: Response): Promise<string>
 {
