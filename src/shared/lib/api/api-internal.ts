@@ -1,88 +1,99 @@
+import Cookies from "js-cookie";
+import { env } from "@/shared/config/env";
+
 /**
- * Tipos de métodos HTTP aceitos pela função {@link apiInternal}.
+ * Tipos de métodos HTTP aceitos pela função {@link apiExternal}.
  */
 export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
 
 /**
- * Parâmetros opcionais aceitos pela função {@link apiInternal}.
+ * Parâmetros opcionais aceitos pela função {@link apiExternal}.
  *
  * Baseado em `RequestInit`, com suporte adicional para `method` e `body`.
  */
-export interface ApiOptions extends Omit<RequestInit, "body">
-{
-    /** Method HTTP (GET, POST, PUT, DELETE, PATCH). */
+export interface ApiOptions extends Omit<RequestInit, "body"> {
+    /** Method HTTP a ser utilizado (GET, POST, PUT, DELETE, PATCH). */
     method?: HttpMethod;
-    /** Corpo da requisição — convertido automaticamente em JSON, exceto se for `FormData` ou `string`. */
+    /** Corpo da requisição — serializado automaticamente quando necessário. */
     body?: unknown;
 }
 
 /**
- * Função utilitária para chamadas de **rotas internas** do Next.js,
- * como **API Routes** (`/api/...`) ou **Server Actions** expostas via `fetch()`.
+ * Função genérica para requisições HTTP padronizadas à API externa.
  *
  * ---
  *
- * ###  Comportamento
- *
- * - **Exige** que o caminho (`path`) comece com `"/api/"`.
- * - Usa `fetch()` diretamente no domínio atual (sem base externa).
- * - Define o header `Content-Type: application/json` por padrão.
- * - Converte automaticamente o corpo (`body`) para JSON.
- * - Remove cache de requisições (`cache: "no-store"`).
- * - Lança `Error` padronizado se a resposta não for bem-sucedida.
+ * ## Objetivo
+ * Centralizar todas as chamadas `fetch()` que se destinam à API **externa**
+ * definida pela variável de ambiente `NEXT_PUBLIC_API_URL`.
  *
  * ---
  *
- * ### Exemplos
+ * ## Comportamento
  *
- * **POST — logar evento interno:**
+ * - Obtém automaticamente o token JWT salvo via `js-cookie`;
+ * - Injeta o header `Authorization: Bearer <token>` quando disponível;
+ * - Define o header `Content-Type: application/json` por padrão;
+ * - Converte o corpo (`body`) em JSON automaticamente, exceto para `string` e `FormData`;
+ * - **Não força `cache: no-store`** — permitindo caching normal do navegador;
+ * - Lança uma `Error` padronizada caso a resposta não seja `2xx`.
+ *
+ * ---
+ *
+ * ## Exemplos
+ *
+ * ### GET
  * ```ts
- * await apiInternal("/api/logs", {
+ * const user = await apiExternal<User>("/me");
+ * ```
+ *
+ * ### POST
+ * ```ts
+ * await apiExternal("/users", {
  *   method: "POST",
- *   body: { message: "Token capturado com sucesso" },
+ *   body: { name: "Lucas" },
  * });
  * ```
  *
- * **GET — buscar dados internos:**
+ * ### Upload (FormData)
  * ```ts
- * const stats = await apiInternal<AppStats>("/api/stats");
- * ```
+ * const data = new FormData();
+ * data.append("file", file);
  *
- * **PATCH — atualizar cache:**
- * ```ts
- * await apiInternal("/api/cache", {
- *   method: "PATCH",
- *   body: { key: "user-list" },
+ * await apiExternal("/upload", {
+ *   method: "POST",
+ *   body: data,
  * });
  * ```
  *
  * ---
  *
  * @template T Tipo esperado na resposta JSON.
- * @param path Caminho relativo do endpoint interno (ex: `"/api/logs"`).
- * @param options Opções adicionais da requisição (`method`, `body`, `headers`, etc.).
- * @returns Promise tipada com o corpo da resposta convertido em JSON.
- * @throws `Error` se o caminho não começar com `/api/` ou se a requisição falhar.
+ * @param path Caminho relativo da API (ex.: `"/me"`).
+ * @param options Configurações adicionais da requisição.
+ * @returns Resposta tipada da API externa.
+ * @throws `Error` caso a resposta HTTP não seja bem-sucedida.
  */
-export async function apiInternal<T>(
+export async function apiExternal<T>(
     path: string,
     options: ApiOptions = {}
-): Promise<T>
-{
-    if (!path.startsWith("/api/")) {
-        throw new Error(`[apiInternal] Caminho inválido: "${ path }". Use "/api/...".`);
-    }
+): Promise<T> {
+    const baseUrl = env.NEXT_PUBLIC_API_URL;
+    const url = `${baseUrl}${path}`;
+
+    const token = resolveAccessToken();
 
     const headers: HeadersInit = {
         "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers ?? {}),
     };
 
-    const response = await fetch(path, {
+    const response = await fetch(url, {
         ...options,
         headers,
+        credentials: "omit",
         body: formatBody(options.body),
-        cache: "no-store",
     });
 
     if (!response.ok) {
@@ -94,41 +105,38 @@ export async function apiInternal<T>(
 }
 
 /**
- * Converte o corpo da requisição (`body`) para o formato apropriado.
+ * Resolve o token JWT atual a partir do cookie `token`.
  *
- * ---
- *
- * - Strings e `FormData` são mantidos como estão.
- * - Objetos são serializados em JSON.
- * - `undefined` e `null` são ignorados.
- *
- * ---
- *
- * @param body Corpo da requisição.
- * @returns Corpo formatado para envio via `fetch`.
+ * - Disponível somente no cliente (`js-cookie` não funciona no servidor);
+ * - Retorna `null` caso o token não exista.
  */
-function formatBody(body: unknown): BodyInit | undefined
-{
+function resolveAccessToken(): string | null {
+    if (typeof window === "undefined") return null;
+
+    const token = Cookies.get("token");
+    if (token) return token;
+
+    console.warn("[apiExternal] Nenhum token encontrado no cookie.");
+    return null;
+}
+
+/**
+ * Formata o corpo da requisição para envio via `fetch`.
+ *
+ * - `string` e `FormData` são mantidos;
+ * - Objetos são automaticamente serializados para JSON;
+ * - Valores `null` e `undefined` removem o corpo.
+ */
+function formatBody(body: unknown): BodyInit | undefined {
     if (body === undefined || body === null) return undefined;
     if (typeof body === "string" || body instanceof FormData) return body;
     return JSON.stringify(body);
 }
 
 /**
- * Extrai e padroniza uma mensagem de erro da resposta HTTP.
- *
- * ---
- *
- * - Se o corpo contiver um JSON com `message` ou `error`, usa esse valor.
- * - Caso contrário, retorna o `statusText` da resposta.
- *
- * ---
- *
- * @param res Resposta HTTP (`Response`).
- * @returns Mensagem de erro extraída.
+ * Extrai uma mensagem de erro padronizada da resposta HTTP.
  */
-async function extractErrorMessage(res: Response): Promise<string>
-{
+async function extractErrorMessage(res: Response): Promise<string> {
     try {
         const data = (await res.json()) as Record<string, unknown>;
         return String(data.message ?? data.error ?? res.statusText);

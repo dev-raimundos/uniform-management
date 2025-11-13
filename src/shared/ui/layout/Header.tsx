@@ -5,11 +5,33 @@ import { useUserStore } from "@/modules/auth";
 
 /**
  * Cabeçalho fixo padrão, exibindo informações do usuário e ações globais.
+ *
+ * Este componente consome SOMENTE o estado do Zustand,
+ * garantindo estabilidade e evitando qualquer flicker durante navegação
+ * entre rotas.
  */
-export function Header()
-{
-
+export function Header() {
     const user = useUserStore((state) => state.user);
+    const loaded = useUserStore((state) => state.loaded);
+
+    // Enquanto o usuário ainda não foi carregado via UserInitializer
+    if (!loaded) {
+        return (
+            <header className="flex h-16 w-full items-center justify-between border-b bg-background px-6">
+                <h2 className="text-lg font-semibold text-foreground">
+                    Acompanhamento de Veículos
+                </h2>
+
+                {/* Skeleton invisível para manter layout estável */}
+                <div className="flex items-center gap-3 opacity-0 pointer-events-none">
+                    <div className="flex flex-col text-right text-sm">
+                        <span className="font-medium">Carregando...</span>
+                        <span className="text-muted-foreground text-xs">—</span>
+                    </div>
+                </div>
+            </header>
+        );
+    }
 
     return (
         <header className="flex h-16 w-full items-center justify-between border-b bg-background px-6">
@@ -19,22 +41,20 @@ export function Header()
 
             <div className="flex items-center gap-3">
                 <div className="flex flex-col text-right text-sm">
-                    { user ? (
+                    {user ? (
                         <>
-                            <span className="font-medium">{ user.nome }</span>
-                            <span className="text-muted-foreground text-xs">{ user.cargo }</span>
+                            <span className="font-medium">{user.nome}</span>
+                            <span className="text-muted-foreground text-xs">{user.cargo}</span>
                         </>
                     ) : (
                         <>
-              <span className="font-medium text-muted-foreground">
-                Usuário desconhecido
-              </span>
+                            <span className="font-medium text-muted-foreground">Usuário desconhecido</span>
                             <span className="text-muted-foreground text-xs">—</span>
                         </>
-                    ) }
+                    )}
                 </div>
 
-                <ThemeToggle/>
+                <ThemeToggle />
             </div>
         </header>
     );

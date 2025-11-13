@@ -1,38 +1,11 @@
-import { useUserStore, type User } from "@/modules/auth";
 import { apiExternal } from "@/shared/lib/api";
+import type { User } from "@/modules/auth";
 
 /**
- * Busca o usuário autenticado na API `/me` e popula a store global.
- *
- * Responsabilidade: Essa camada lida apenas com a lógica da requisição HTTP,
- * no exemplo abaixo você verá como ele apenas chama a interface, storage de cache
- * e o HTTP
+ * Função pura que busca o usuário via `/me`.
+ * Usada pelo React Query.
  */
-export async function getCurrentUser(): Promise<void>
-{
-    try {
-        const response = await apiExternal<{
-            error: boolean;
-            message: string;
-            results: User;
-        }>("/me");
-
-        if (response.error) {
-            const { clearUser } = useUserStore.getState();
-            clearUser();
-            return;
-        }
-
-        const { setUser } = useUserStore.getState();
-
-        setUser(response.results);
-
-    } catch (error) {
-
-        const { clearUser } = useUserStore.getState();
-
-        clearUser();
-
-        console.error("Falha ao carregar usuário:", error);
-    }
+export async function fetchCurrentUser(): Promise<User> {
+    const response = await apiExternal<{ results: User }>("/me");
+    return response.results;
 }
