@@ -37,7 +37,7 @@ src/
 │   ├─ store/             # Global Zustand stores (theme, user, etc.)
 │   └─ config/            # Environment variables and runtime configs
 │
-└─ proxy.ts               # Next.js 16 proxy (replaces deprecated middleware)
+└─ middleware.ts               # Next.js 16 middleware (replaces deprecated middleware)
 ```
 
 ---
@@ -46,7 +46,7 @@ src/
 
 | Layer             | Responsibility                                                        | Example                              |
 | ----------------- | --------------------------------------------------------------------- | ------------------------------------ |
-| **Proxy**         | Intercepts requests, validates JWT token, sets authentication cookie  | `src/proxy.ts`                       |
+| **Proxy**         | Intercepts requests, validates JWT token, sets authentication cookie  | `src/middleware.ts`                       |
 | **API Layer**     | Defines network communication with the backend                        | `src/shared/lib/api.ts`              |
 | **Features**      | Encapsulates business logic per domain (auth, users, companies, etc.) | `src/features/auth/`                 |
 | **Store**         | Holds reactive global or feature-level state (Zustand)                | `src/shared/store/user.store.ts`     |
@@ -59,7 +59,7 @@ src/
 ## 4. Authentication Flow
 
 1. The legacy PHP system authenticates the user and redirects with a **JWT bearer token**.
-2. The **Next.js proxy** intercepts the request, extracts the token, and sets it as an `httpOnly` cookie.
+2. The **Next.js middleware** intercepts the request, extracts the token, and sets it as an `httpOnly` cookie.
 3. On app load, the **`getCurrentUser()`** service calls the backend `/me` endpoint using that cookie.
 4. The user data is stored in the **Zustand global store**.
 5. Components use **`useCurrentUser()`** to access the authenticated user reactively across the app.

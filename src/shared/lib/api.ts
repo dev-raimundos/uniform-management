@@ -30,7 +30,7 @@ export interface ApiOptions extends Omit<RequestInit, "body"> {
  *   - Usa token do `.env.local` (`NEXT_PUBLIC_TEST_TOKEN`) ou do `localStorage`.
  *   - Nunca envia cookies automáticos (`credentials: "omit"`).
  * - Produção:
- *   - Usa token do cookie `access_token` definido pelo proxy.
+ *   - Usa token do cookie `access_token` definido pelo middleware.
  *   - Envia o token via header `Authorization`.
  *
  * ---

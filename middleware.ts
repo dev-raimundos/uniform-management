@@ -15,7 +15,7 @@ import { env } from "@/shared/config/env";
  *
  * Caso não haja nenhum token disponível, redireciona para a tela de login.
  */
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone();
     const tokenFromUrl = url.searchParams.get("token");
     const tokenFromCookie = request.cookies.get("access_token")?.value;
@@ -57,14 +57,14 @@ export async function proxy(request: NextRequest) {
     const token = tokenFromCookie ?? null;
     if (!token) {
         console.warn("[Proxy] Nenhum token encontrado — redirecionando para login.");
-        return NextResponse.redirect(env.NEXT_PUBLIC_LOGIN_URL);
+        //return NextResponse.redirect(env.NEXT_PUBLIC_LOGIN_URL);
     }
 
     return NextResponse.next();
 }
 
 /**
- * Define quais rotas passam pelo proxy.
+ * Define quais rotas passam pelo middleware.
  */
 export const config = {
     matcher: ["/((?!_next|api|favicon.ico).*)"],
