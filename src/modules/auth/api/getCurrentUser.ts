@@ -1,5 +1,5 @@
 import { useUserStore, type User } from "@/modules/auth";
-import { api } from "@/shared/lib/api";
+import { apiExternal } from "@/shared/lib/api";
 
 /**
  * Busca o usuário autenticado na API `/me` e popula a store global.
@@ -11,7 +11,7 @@ import { api } from "@/shared/lib/api";
 export async function getCurrentUser(): Promise<void>
 {
     try {
-        const response = await api<{
+        const response = await apiExternal<{
             error: boolean;
             message: string;
             results: User;

@@ -2,7 +2,7 @@
 
 import { useQuery, type QueryObserverResult } from "@tanstack/react-query";
 import { useUserStore, type User } from "@/modules/auth";
-import { api } from "@/shared/lib/api";
+import { apiExternal } from "@/shared/lib/api/api-external";
 import { useEffect } from "react";
 
 /**
@@ -11,7 +11,7 @@ import { useEffect } from "react";
  * @returns Um objeto com a chave `results` contendo os dados do usuário.
  */
 async function fetchCurrentUser(): Promise<User> {
-    const response = await api<{ results: User }>("/me");
+    const response = await apiExternal<{ results: User }>("/me");
     return response.results;
 }
 

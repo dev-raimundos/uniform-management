@@ -22,7 +22,7 @@ src/
 │
 ├─ features/              # Business features organized by domain
 │   └─ auth/              # Example: authentication feature
-│       ├─ api/           # API requests related to the feature
+│       ├─ apiExternal/           # API requests related to the feature
 │       ├─ hooks/         # React hooks exposing feature logic
 │       ├─ store/         # Zustand stores (feature state)
 │       ├─ components/    # Feature-specific UI components
@@ -30,7 +30,7 @@ src/
 │
 ├─ shared/                # Cross-cutting utilities used by all features
 │   ├─ lib/               # Framework-independent logic and helpers
-│   │   ├─ api.ts         # Centralized HTTP client (fetch wrapper)
+│   │   ├─ api-external.ts         # Centralized HTTP client (fetch wrapper)
 │   │   ├─ react-query/   # Query client and provider setup
 │   │   └─ ...
 │   ├─ ui/                # Reusable UI primitives (Shadcn + Tailwind)
@@ -47,7 +47,7 @@ src/
 | Layer             | Responsibility                                                        | Example                              |
 | ----------------- | --------------------------------------------------------------------- | ------------------------------------ |
 | **Proxy**         | Intercepts requests, validates JWT token, sets authentication cookie  | `src/middleware.ts`                       |
-| **API Layer**     | Defines network communication with the backend                        | `src/shared/lib/api.ts`              |
+| **API Layer**     | Defines network communication with the backend                        | `src/shared/lib/api-external.ts`              |
 | **Features**      | Encapsulates business logic per domain (auth, users, companies, etc.) | `src/features/auth/`                 |
 | **Store**         | Holds reactive global or feature-level state (Zustand)                | `src/shared/store/user.store.ts`     |
 | **Hooks**         | Bridges between UI and data/business logic                            | `src/features/auth/hooks/useUser.ts` |
@@ -67,7 +67,7 @@ src/
 
 ---
 
-## 5. Shared API Client (`src/shared/lib/api.ts`)
+## 5. Shared API Client (`src/shared/lib/api-external.ts`)
 
 A single, strongly typed API client standardizes all HTTP requests.
 
@@ -116,7 +116,7 @@ Responsibilities:
 Typical `.env.local` example:
 
 ```
-NEXT_PUBLIC_API_URL=https://api.example.com
+NEXT_PUBLIC_API_URL=https://apiExternal.example.com
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_LOGIN_URL=https://legacy.example.com/login
 NEXT_PUBLIC_TEST_TOKEN=dev-token

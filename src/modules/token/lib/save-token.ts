@@ -2,7 +2,7 @@ import Cookies from "js-cookie";
 
 /**
  * Define onde e como o token será armazenado.
- * Usa `js-cookie` para salvar de forma consistente entre o cliente e o `api()`.
+ * Usa `js-cookie` para salvar de forma consistente entre o cliente e o `apiExternal()`.
  */
 export function saveToken(token: string)
 {
